@@ -1,31 +1,19 @@
-;;; evil-rus.el -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2022
-;;
-;; Author:  <https://github.com/shoo>
-;; Maintainer:  <shoo@T8>
-;; Created: February 27, 2022
-;; Modified: February 27, 2022
-;; Version: 0.0.1
-;; Keywords: abbrev bib c calendar comm convenience data docs emulations extensions faces files frames games hardware help hypermedia i18n internal languages lisp local maint mail matching mouse multimedia news outlines processes terminals tex tools unix vc wp
-;; Homepage: https://github.com/shoo/evil-rus
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is not part of GNU Emacs.
-;;
+;;; evil-rus.el --- Foo -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;
-;;
-;;
 ;;; Code:
+(require 'evil-escape)
+(require 'quail)
+
+(defvar khaoos-input-method-last-raw-key nil
+  "The last key pressed with an input method switched on but ignoring conversion of the input method.")
 
 ;;;###autoload
-
 (defun khaoos-capture-input-mode-raw-key (key)
   "Function captures an input key ignoring the current input method.
 Doesn't work for complex input methods which use event loops."
   (setq khaoos-input-method-last-raw-key (char-to-string key)))
 
+;;;###autoload
 (defun khaoos-activate-input-method (input-method)
   "Defines an advise for a function which implements current input method."
   ;; We don't bother ourselves to remove the advise when we deactivate the input method.
@@ -37,6 +25,7 @@ Doesn't work for complex input methods which use event loops."
   (if (and current-input-method input-method-function)
       (advice-add input-method-function :before #'khaoos-capture-input-mode-raw-key)))
 
+;;;###autoload
 (advice-add 'activate-input-method :after #'khaoos-activate-input-method)
 
 (defcustom khaoos-evil-escape-ignore-input-method nil
@@ -44,6 +33,7 @@ Doesn't work for complex input methods which use event loops."
   :type 'boolean
   :group 'evil-escape)
 
+;;;###autoload
 (defun khaoos-evil-escape-p ()
   "Return non-nil if evil-escape can run.
 Edited by khaoos to implement the ability of ignoring the input method"
@@ -76,8 +66,9 @@ Edited by khaoos to implement the ability of ignoring the input method"
                        (mapcar 'funcall evil-escape-inhibit-functions)
                        :initial-value nil))))
 
+;;;###autoload
 (defun khaoos-evil-escape-pre-command-hook ()
-  "evil-escape pre-command hook.
+  "`evil-escape' pre-command hook.
 Edited by khaoos to implement the ability of ignoring the input method"
   (with-demoted-errors "evil-escape: Error %S"
       (when (khaoos-evil-escape-p)
@@ -109,9 +100,9 @@ Edited by khaoos to implement the ability of ignoring the input method"
 
 (advice-add 'evil-escape-pre-command-hook :override #'khaoos-evil-escape-pre-command-hook)
 
+;;;###autoload
 (defun khaoos-evil-read-key-respect-input-method (evil-read-key-result)
-  "Gets the result of evil-read-key function and converts it according the current input method
-which at the moment could be a method of a family of quail input methods"
+  "Get the result of evil-read-key function and convert it according the current input method which at the moment could be a method of a family of quail input methods."
   (if (and (characterp evil-read-key-result)
            current-input-method
            (equal input-method-function 'quail-input-method))
@@ -124,8 +115,9 @@ which at the moment could be a method of a family of quail input methods"
 
 (advice-add 'evil-read-key :filter-return 'khaoos-evil-read-key-respect-input-method)
 
+;;;###autoload
 (defun khaoos-run-evil-command-respect-input-method (evil-command)
-  "Runs interactively evil command evil-command which now respects the current input method"
+  "Run interactively evil command evil-command which now respects the current input method."
   ;; if we are in the mode which prohibits input method we do a trick
   (if (and evil-input-method (not current-input-method))
       (evil-without-input-method-hooks
@@ -133,12 +125,14 @@ which at the moment could be a method of a family of quail input methods"
         (condition-case err
             (call-interactively evil-command)
           (error
-            (inactivate-input-method)
+            (deactivate-input-method)
             (signal (car err) (cdr err))))
-        (inactivate-input-method))
+        (deactivate-input-method))
     (call-interactively evil-command)))
 
+
 ;; (with-eval-after-load "evil-macros"
+;;;###autoload (autoload 'khaoos-evil-replace "evil-rus" nil t)
   (evil-define-operator khaoos-evil-replace ()
     "Wrapper of evil-replace to make it respect input method"
     (interactive)
@@ -172,6 +166,7 @@ which at the moment could be a method of a family of quail input methods"
     (let ((a (read-char "Input a character to insert:" t)))
       (insert-char a)))
 
+;;;###autoload (autoload 'khaoos-insert-one-char "evil-rus" nil t)
   (evil-define-operator khaoos-insert-one-char ()
     "Switches to insert mode just to input one character"
     (interactive)
@@ -185,13 +180,15 @@ which at the moment could be a method of a family of quail input methods"
       (insert-char a)
 		  (unless (eolp) (backward-char))))
 
+;;;###autoload (autoload 'khaoos-append-one-char  "evil-rus" nil t)
   (evil-define-operator khaoos-append-one-char ()
     "Switches to insert mode just to input one character"
     (interactive)
     (khaoos-run-evil-command-respect-input-method 'khaoos--append-one-char))
 ;; )
 
-;; (with-eval-after-load "evil-integration"
+ ;; (with-eval-after-load "evil-integration"
+;;;###autoload
   (defun khaoos-avy-goto-char ()
     "Make `evil-avy-go-to-char' respect the current input method"
     (interactive)
@@ -199,6 +196,7 @@ which at the moment could be a method of a family of quail input methods"
 
   (evil-define-avy-motion khaoos-avy-goto-char inclusive)
 
+;;;###autoload
   (defun khaoos-avy-goto-char-2 ()
     "Make `evil-avy-go-to-char-2' respect the current input method"
     (interactive)
@@ -206,12 +204,15 @@ which at the moment could be a method of a family of quail input methods"
 
   (evil-define-avy-motion khaoos-avy-goto-char-2 inclusive)
 
+;;;###autoload
   (defun khaoos-avy-goto-word-or-subword-1 ()
     "Make `evil-avy-go-to-char' respect the current input method"
     (interactive)
     (khaoos-run-evil-command-respect-input-method 'avy-goto-word-or-subword-1))
 
   (evil-define-avy-motion khaoos-avy-goto-word-or-subword-1 exclusive)
-;; )
+  ;; )
+
+
 (provide 'evil-rus)
 ;;; evil-rus.el ends here
