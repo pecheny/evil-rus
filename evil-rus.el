@@ -1,20 +1,60 @@
-;;; evil-rus.el --- Foo -*- lexical-binding: t; -*-
+;;; evil-rus.el --- Alternative input methods support for evil mode -*- lexical-binding: t; -*-
+;; Author: khaoos-abominable, pecheny
+;; Maintainer:  pecheny
+;; Version: 0.0.1
+;; Keywords: evil-mode, input-method, cyrillic
+;; Homepage: https://github.com/pecheny/evil-rus
+;; Package-Requires: ((emacs "24.3"))
+;;
+;; This file is not part of GNU Emacs.
+;;
 ;;; Commentary:
+;;
+;; Evil operators ignore your input method and treat argument as if it was typed in default english layout.
+;; This package aimed to fix this issue. Though it may have limitations.
+;; Original author khaoos-abominable had done the solution in personal config.
+;; https://github.com/khaoos-abominable/dotfiles/blob/master/spacemacs/dotspacemacs
+;; This version is extracted for use as a package especcially for doom users. Tested with doom and russian-computer input-method.
+;;
+;; Add to packages.el:
+;;
+;; (package! projectile
+;;   :recipe (:host github :repo "pecheny/evil-rus" ))
+;;
+;; and to config.el:
+;;
+;; (define-key evil-normal-state-map (kbd "r") 'evil-rus-evil-replace)
+;; (define-key evil-motion-state-map (kbd "f") 'evil-rus-evil-find-char)
+;; (define-key evil-motion-state-map (kbd "t") 'evil-rus-evil-find-char-to)
+;; (define-key evil-motion-state-map (kbd "F") 'evil-rus-evil-find-char-backward)
+;; (define-key evil-motion-state-map (kbd "T") 'evil-rus-evil-find-char-to-backward)
+;;
+;; and on your preferences :
+;;
+;; (map! :vn "gss" 'evil-evil-rus-avy-goto-char-2)
+;; (map! :vn "gsd" 'evil-evil-rus-avy-goto-word-or-subword-1)
+;; (map! :vn "gsx" 'evil-evil-rus-avy-goto-char)
+;; (define-key evil-normal-state-map (kbd "M-i") 'evil-rus-insert-one-char)
+;; (define-key evil-normal-state-map (kbd "M-a") 'evil-rus-append-one-char)
+;;
+;; See more: https://github.com/emacs-evil/evil/issues/605
+;;
 ;;; Code:
+
 (require 'evil-escape)
 (require 'quail)
 
-(defvar khaoos-input-method-last-raw-key nil
+(defvar evil-rus-input-method-last-raw-key nil
   "The last key pressed with an input method switched on but ignoring conversion of the input method.")
 
 ;;;###autoload
-(defun khaoos-capture-input-mode-raw-key (key)
+(defun evil-rus-capture-input-mode-raw-key (key)
   "Function captures an input key ignoring the current input method.
 Doesn't work for complex input methods which use event loops."
-  (setq khaoos-input-method-last-raw-key (char-to-string key)))
+  (setq evil-rus-input-method-last-raw-key (char-to-string key)))
 
 ;;;###autoload
-(defun khaoos-activate-input-method (input-method)
+(defun evil-rus-activate-input-method (input-method)
   "Defines an advise for a function which implements current input method."
   ;; We don't bother ourselves to remove the advise when we deactivate the input method.
   ;; The chances are high that we'll reuse it.
@@ -23,18 +63,18 @@ Doesn't work for complex input methods which use event loops."
   ;; I saw a case when input-method-function was equal to 'list'! So there is addition check
   ;; on current-input-method
   (if (and current-input-method input-method-function)
-      (advice-add input-method-function :before #'khaoos-capture-input-mode-raw-key)))
+      (advice-add input-method-function :before #'evil-rus-capture-input-mode-raw-key)))
 
 ;;;###autoload
-(advice-add 'activate-input-method :after #'khaoos-activate-input-method)
+(advice-add 'activate-input-method :after #'evil-rus-activate-input-method)
 
-(defcustom khaoos-evil-escape-ignore-input-method nil
+(defcustom evil-rus-evil-escape-ignore-input-method nil
   "If non-nil then the key sequence can be entered ignoring the current input method if any."
   :type 'boolean
   :group 'evil-escape)
 
 ;;;###autoload
-(defun khaoos-evil-escape-p ()
+(defun evil-rus-evil-escape-p ()
   "Return non-nil if evil-escape can run.
 Edited by khaoos to implement the ability of ignoring the input method"
   (and evil-escape-key-sequence
@@ -53,25 +93,25 @@ Edited by khaoos to implement the ability of ignoring the input method"
        (or (not evil-escape-enable-only-for-major-modes)
            (memq major-mode evil-escape-enable-only-for-major-modes))
        (or (equal (this-command-keys) (evil-escape--first-key))
-           (and khaoos-evil-escape-ignore-input-method ;;khaoos+
+           (and evil-rus-evil-escape-ignore-input-method ;;khaoos+
                 current-input-method ;;khaoos+
-                (equal khaoos-input-method-last-raw-key (evil-escape--first-key))) ;;khaoos+
+                (equal evil-rus-input-method-last-raw-key (evil-escape--first-key))) ;;khaoos+
            (and evil-escape-unordered-key-sequence
                 (or (equal (this-command-keys) (evil-escape--second-key))))
            (and evil-escape-unordered-key-sequence ;;khaoos+
-                khaoos-evil-escape-ignore-input-method ;;khaoos+
+                evil-rus-evil-escape-ignore-input-method ;;khaoos+
                 current-input-method ;;khaoos+
-                (equal khaoos-input-method-last-raw-key (evil-escape--second-key)))) ;;khaoos+
+                (equal evil-rus-input-method-last-raw-key (evil-escape--second-key)))) ;;khaoos+
        (not (cl-reduce (lambda (x y) (or x y))
                        (mapcar 'funcall evil-escape-inhibit-functions)
                        :initial-value nil))))
 
 ;;;###autoload
-(defun khaoos-evil-escape-pre-command-hook ()
+(defun evil-rus-evil-escape-pre-command-hook ()
   "`evil-escape' pre-command hook.
 Edited by khaoos to implement the ability of ignoring the input method"
   (with-demoted-errors "evil-escape: Error %S"
-      (when (khaoos-evil-escape-p)
+      (when (evil-rus-evil-escape-p)
         (let* ((modified (buffer-modified-p))
                (inserted (evil-escape--insert))
                (fkey (elt evil-escape-key-sequence 0))
@@ -82,15 +122,15 @@ Edited by khaoos to implement the ability of ignoring the input method"
           (cond
            ((and (characterp evt)
                  (or (and (or (equal (this-command-keys) (evil-escape--first-key)) ;;khaoos*
-                              (and khaoos-evil-escape-ignore-input-method ;;khaoos+
+                              (and evil-rus-evil-escape-ignore-input-method ;;khaoos+
                                    current-input-method ;;khaoos+
-                                   (equal khaoos-input-method-last-raw-key (evil-escape--first-key)))) ;;khaoos+
+                                   (equal evil-rus-input-method-last-raw-key (evil-escape--first-key)))) ;;khaoos+
                           (char-equal evt skey))
                      (and evil-escape-unordered-key-sequence
                           (or (equal (this-command-keys) (evil-escape--second-key)) ;;khaoos*
-                              (and khaoos-evil-escape-ignore-input-method ;;khaoos+
+                              (and evil-rus-evil-escape-ignore-input-method ;;khaoos+
                                    current-input-method ;;khaoos+
-                                   (equal khaoos-input-method-last-raw-key (evil-escape--second-key)))) ;;khaoos+
+                                   (equal evil-rus-input-method-last-raw-key (evil-escape--second-key)))) ;;khaoos+
                           (char-equal evt fkey))))
             (evil-repeat-stop)
             (when (evil-escape-func) (setq this-command (evil-escape-func))))
@@ -98,10 +138,10 @@ Edited by khaoos to implement the ability of ignoring the input method"
            (t (setq unread-command-events
                     (append unread-command-events (list evt)))))))))
 
-(advice-add 'evil-escape-pre-command-hook :override #'khaoos-evil-escape-pre-command-hook)
+(advice-add 'evil-escape-pre-command-hook :override #'evil-rus-evil-escape-pre-command-hook)
 
 ;;;###autoload
-(defun khaoos-evil-read-key-respect-input-method (evil-read-key-result)
+(defun evil-rus-evil-read-key-respect-input-method (evil-read-key-result)
   "Get the result of evil-read-key function and convert it according the current input method which at the moment could be a method of a family of quail input methods."
   (if (and (characterp evil-read-key-result)
            current-input-method
@@ -113,10 +153,10 @@ Edited by khaoos to implement the ability of ignoring the input method"
           translated-key)
     evil-read-key-result))
 
-(advice-add 'evil-read-key :filter-return 'khaoos-evil-read-key-respect-input-method)
+(advice-add 'evil-read-key :filter-return 'evil-rus-evil-read-key-respect-input-method)
 
 ;;;###autoload
-(defun khaoos-run-evil-command-respect-input-method (evil-command)
+(defun evil-rus-run-evil-command-respect-input-method (evil-command)
   "Run interactively evil command evil-command which now respects the current input method."
   ;; if we are in the mode which prohibits input method we do a trick
   (if (and evil-input-method (not current-input-method))
@@ -132,47 +172,47 @@ Edited by khaoos to implement the ability of ignoring the input method"
 
 
 ;; (with-eval-after-load "evil-macros"
-;;;###autoload (autoload 'khaoos-evil-replace "evil-rus" nil t)
-  (evil-define-operator khaoos-evil-replace ()
+;;;###autoload (autoload 'evil-rus-evil-replace "evil-rus" nil t)
+  (evil-define-operator evil-rus-evil-replace ()
     "Wrapper of evil-replace to make it respect input method"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'evil-replace))
+    (evil-rus-run-evil-command-respect-input-method 'evil-replace))
 
-  (evil-define-motion khaoos-evil-find-char ()
+  (evil-define-motion evil-rus-evil-find-char ()
     "Wrapper of evil-find-char to make it respect input method"
     :type inclusive
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'evil-find-char))
+    (evil-rus-run-evil-command-respect-input-method 'evil-find-char))
 
-  (evil-define-motion khaoos-evil-find-char-to ()
+  (evil-define-motion evil-rus-evil-find-char-to ()
     "Wrapper of evil-find-char-to to make it respect input method"
     :type inclusive
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'evil-find-char-to))
+    (evil-rus-run-evil-command-respect-input-method 'evil-find-char-to))
 
-  (evil-define-motion khaoos-evil-find-char-backward ()
+  (evil-define-motion evil-rus-evil-find-char-backward ()
     "Wrapper of evil-find-char-backward to make it respect input method"
     :type exclusive
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'evil-find-char-backward))
+    (evil-rus-run-evil-command-respect-input-method 'evil-find-char-backward))
 
-  (evil-define-motion khaoos-evil-find-char-to-backward ()
+  (evil-define-motion evil-rus-evil-find-char-to-backward ()
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'evil-find-char-to-backward))
+    (evil-rus-run-evil-command-respect-input-method 'evil-find-char-to-backward))
 
-  (evil-define-operator khaoos--insert-one-char ()
+  (evil-define-operator evil-rus--insert-one-char ()
     "Switches to insert mode just to input one character"
     (interactive)
     (let ((a (read-char "Input a character to insert:" t)))
       (insert-char a)))
 
-;;;###autoload (autoload 'khaoos-insert-one-char "evil-rus" nil t)
-  (evil-define-operator khaoos-insert-one-char ()
+;;;###autoload (autoload 'evil-rus-insert-one-char "evil-rus" nil t)
+  (evil-define-operator evil-rus-insert-one-char ()
     "Switches to insert mode just to input one character"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'khaoos--insert-one-char))
+    (evil-rus-run-evil-command-respect-input-method 'evil-rus--insert-one-char))
 
-  (evil-define-operator khaoos--append-one-char ()
+  (evil-define-operator evil-rus--append-one-char ()
     "Switches to insert mode just to append one character"
     (interactive)
     (let ((a (read-char "Input a character to append:" t)))
@@ -180,38 +220,37 @@ Edited by khaoos to implement the ability of ignoring the input method"
       (insert-char a)
 		  (unless (eolp) (backward-char))))
 
-;;;###autoload (autoload 'khaoos-append-one-char  "evil-rus" nil t)
-  (evil-define-operator khaoos-append-one-char ()
+;;;###autoload (autoload 'evil-rus-append-one-char  "evil-rus" nil t)
+  (evil-define-operator evil-rus-append-one-char ()
     "Switches to insert mode just to input one character"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'khaoos--append-one-char))
+    (evil-rus-run-evil-command-respect-input-method 'evil-rus--append-one-char))
 ;; )
 
  ;; (with-eval-after-load "evil-integration"
 ;;;###autoload
-  (defun khaoos-avy-goto-char ()
+  (defun evil-rus-avy-goto-char ()
     "Make `evil-avy-go-to-char' respect the current input method"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'avy-goto-char))
+    (evil-rus-run-evil-command-respect-input-method 'avy-goto-char))
 
-  (evil-define-avy-motion khaoos-avy-goto-char inclusive)
+  (evil-define-avy-motion evil-rus-avy-goto-char inclusive)
 
 ;;;###autoload
-  (defun khaoos-avy-goto-char-2 ()
+  (defun evil-rus-avy-goto-char-2 ()
     "Make `evil-avy-go-to-char-2' respect the current input method"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'avy-goto-char-2))
+    (evil-rus-run-evil-command-respect-input-method 'avy-goto-char-2))
 
-  (evil-define-avy-motion khaoos-avy-goto-char-2 inclusive)
+  (evil-define-avy-motion evil-rus-avy-goto-char-2 inclusive)
 
 ;;;###autoload
-  (defun khaoos-avy-goto-word-or-subword-1 ()
-    "Make `evil-avy-go-to-char' respect the current input method"
+  (defun evil-rus-avy-goto-word-or-subword-1 ()
+    "Make `avy-goto-word-or-subword-1' respect the current input method"
     (interactive)
-    (khaoos-run-evil-command-respect-input-method 'avy-goto-word-or-subword-1))
+    (evil-rus-run-evil-command-respect-input-method 'avy-goto-word-or-subword-1))
 
-  (evil-define-avy-motion khaoos-avy-goto-word-or-subword-1 exclusive)
-  ;; )
+  (evil-define-avy-motion evil-rus-avy-goto-word-or-subword-1 exclusive)
 
 
 (provide 'evil-rus)
