@@ -4,7 +4,7 @@
 ;; Version: 0.0.1
 ;; Keywords: evil-mode, input-method, cyrillic
 ;; Homepage: https://github.com/pecheny/evil-rus
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.4"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
