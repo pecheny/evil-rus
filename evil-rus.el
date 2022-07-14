@@ -2,7 +2,7 @@
 ;; Author: khaoos-abominable, pecheny
 ;; Maintainer:  pecheny
 ;; Version: 0.0.1
-;; Keywords: evil-mode, input-method, cyrillic
+;; Keywords: evil-mode, input-method, emulations, i18n
 ;; Homepage: https://github.com/pecheny/evil-rus
 ;; Package-Requires: ((emacs "24.4"))
 ;;
