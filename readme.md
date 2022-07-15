@@ -23,9 +23,9 @@
 ```
  this commands has no default bindings so pick ones you like:
 ```emacs-lisp
- (map! :vn "gss" 'evil-evil-rus-avy-goto-char-2)
- (map! :vn "gsd" 'evil-evil-rus-avy-goto-word-or-subword-1)
- (map! :vn "gsx" 'evil-evil-rus-avy-goto-char)
+ (map! :vn "gss" 'evil-rus-avy-goto-char-2)
+ (map! :vn "gsd" 'evil-rus-avy-goto-word-or-subword-1)
+ (map! :vn "gsx" 'evil-rus-avy-goto-char)
  (define-key evil-normal-state-map (kbd "M-i") 'evil-rus-insert-one-char)
  (define-key evil-normal-state-map (kbd "M-a") 'evil-rus-append-one-char)
 ```

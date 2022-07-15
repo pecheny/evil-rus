@@ -1,5 +1,5 @@
 ;;; evil-rus.el --- Alternative input methods support for evil mode -*- lexical-binding: t; -*-
-;; Author: khaoos-abominable, pecheny
+;; uthor: khaoos-abominable, pecheny
 ;; Maintainer:  pecheny
 ;; Version: 0.0.1
 ;; Keywords: evil-mode, input-method, emulations, i18n
@@ -31,9 +31,9 @@
 ;;
 ;; and on your preferences :
 ;;
-;; (map! :vn "gss" 'evil-evil-rus-avy-goto-char-2)
-;; (map! :vn "gsd" 'evil-evil-rus-avy-goto-word-or-subword-1)
-;; (map! :vn "gsx" 'evil-evil-rus-avy-goto-char)
+;; (map! :vn "gss" 'evil-rus-avy-goto-char-2)
+;; (map! :vn "gsd" 'evil-rus-avy-goto-word-or-subword-1)
+;; (map! :vn "gsx" 'evil-rus-avy-goto-char)
 ;; (define-key evil-normal-state-map (kbd "M-i") 'evil-rus-insert-one-char)
 ;; (define-key evil-normal-state-map (kbd "M-a") 'evil-rus-append-one-char)
 ;;
