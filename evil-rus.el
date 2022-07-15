@@ -178,24 +178,28 @@ Edited by khaoos to implement the ability of ignoring the input method"
     (interactive)
     (evil-rus-run-evil-command-respect-input-method 'evil-replace))
 
+;;;###autoload (autoload 'evil-rus-evil-find-char "evil-rus" nil t)
   (evil-define-motion evil-rus-evil-find-char ()
     "Wrapper of evil-find-char to make it respect input method"
     :type inclusive
     (interactive)
     (evil-rus-run-evil-command-respect-input-method 'evil-find-char))
 
+;;;###autoload (autoload 'evil-rus-evil-find-char-to "evil-rus" nil t)
   (evil-define-motion evil-rus-evil-find-char-to ()
     "Wrapper of evil-find-char-to to make it respect input method"
     :type inclusive
     (interactive)
     (evil-rus-run-evil-command-respect-input-method 'evil-find-char-to))
 
+;;;###autoload (autoload 'evil-rus-evil-find-char-backward "evil-rus" nil t)
   (evil-define-motion evil-rus-evil-find-char-backward ()
     "Wrapper of evil-find-char-backward to make it respect input method"
     :type exclusive
     (interactive)
     (evil-rus-run-evil-command-respect-input-method 'evil-find-char-backward))
 
+;;;###autoload (autoload 'evil-rus-evil-find-char-to-backwards "evil-rus" nil t)
   (evil-define-motion evil-rus-evil-find-char-to-backward ()
     (interactive)
     (evil-rus-run-evil-command-respect-input-method 'evil-find-char-to-backward))
